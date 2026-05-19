@@ -602,12 +602,37 @@ body::before {
     <div class="tab-manage" id="adminTabs">
       <button class="tab-manage-btn active" onclick="switchAdmin('list',this)">목록 보기</button>
       <button class="tab-manage-btn" onclick="switchAdmin('add',this)">곡 추가</button>
+      <button class="tab-manage-btn" onclick="switchAdmin('data',this)">📦 데이터</button>
       <button class="tab-manage-btn" onclick="switchAdmin('settings',this)">앱 설정</button>
     </div>
 
     <!-- 목록 보기 -->
     <div id="adminList">
       <div class="manage-list" id="manageList"></div>
+    </div>
+
+    <!-- 데이터 관리 -->
+    <div id="adminData" style="display:none;">
+
+      <div style="margin-bottom:8px;font-size:12px;color:#999;font-weight:500;letter-spacing:0.5px;">📤 데이터 내보내기</div>
+      <p style="font-size:13px;color:#888;margin-bottom:10px;line-height:1.6;">
+        현재 등록된 곡 목록과 설정을 파일로 저장합니다.<br>파일을 안전한 곳에 보관해두세요.
+      </p>
+      <button onclick="exportData()" style="width:100%;padding:13px;background:linear-gradient(135deg,#7bb8e8,#5aa0e0);border:none;border-radius:14px;color:white;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-bottom:20px;">
+        📤 백업 파일 다운로드
+      </button>
+
+      <div style="border-top:1px solid #f0f0f0;padding-top:20px;margin-bottom:8px;font-size:12px;color:#999;font-weight:500;letter-spacing:0.5px;">📥 데이터 가져오기</div>
+      <p style="font-size:13px;color:#888;margin-bottom:10px;line-height:1.6;">
+        이전에 저장한 백업 파일을 불러옵니다.<br>
+        <span style="color:#ef5350;font-weight:600;">⚠️ 현재 데이터가 덮어씌워집니다!</span>
+      </p>
+      <label style="display:block;width:100%;padding:13px;background:#f8f4ff;border:2px dashed #c9b8e8;border-radius:14px;text-align:center;cursor:pointer;font-size:14px;color:#a78bcc;font-weight:700;margin-bottom:8px;">
+        📥 백업 파일 선택하기
+        <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none;">
+      </label>
+      <p style="font-size:11px;color:#bbb;text-align:center;">.json 파일만 지원합니다</p>
+
     </div>
 
     <!-- 곡 추가 -->
@@ -954,6 +979,61 @@ function removeGroup(i) {
   renderGroupSelect();
 }
 
+// ───── 데이터 내보내기 / 가져오기 ─────
+function exportData() {
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toLocaleString('ko-KR'),
+    songs: songs,
+    config: appConfig
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `music-app-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 백업 파일이 다운로드됐어요!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.songs || !Array.isArray(backup.songs)) {
+        showToast('올바른 백업 파일이 아니에요', true);
+        return;
+      }
+      if (!confirm(`백업 파일을 불러올까요?\n곡 ${backup.songs.length}개, 설정이 복원됩니다.\n⚠️ 현재 데이터가 덮어씌워집니다!`)) return;
+
+      songs = backup.songs;
+      if (backup.config) {
+        appConfig = backup.config;
+        if (!appConfig.groups) appConfig.groups = [];
+      }
+      save();
+      try { localStorage.setItem('musicAppConfig', JSON.stringify(appConfig)); } catch(e) {}
+      selectedTheme = appConfig.theme ?? 0;
+      applyTheme(selectedTheme);
+      applyConfig();
+      renderSongs();
+      renderManageList();
+      showToast(`✅ 곡 ${songs.length}개 복원 완료!`);
+      // 파일 입력 초기화
+      document.getElementById('importFile').value = '';
+    } catch(err) {
+      showToast('파일을 읽는 중 오류가 발생했어요', true);
+    }
+  };
+  reader.readAsText(file);
+}
+
 // ───── 관리자 ─────
 function openAdmin() {
   renderManageList();
@@ -975,8 +1055,9 @@ function closeOnBg(e) {
 function switchAdmin(tab, btn) {
   document.querySelectorAll('.tab-manage-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('adminList').style.display = tab === 'list' ? '' : 'none';
-  document.getElementById('adminAdd').style.display = tab === 'add' ? '' : 'none';
+  document.getElementById('adminList').style.display     = tab === 'list'     ? '' : 'none';
+  document.getElementById('adminAdd').style.display      = tab === 'add'      ? '' : 'none';
+  document.getElementById('adminData').style.display     = tab === 'data'     ? '' : 'none';
   document.getElementById('adminSettings').style.display = tab === 'settings' ? '' : 'none';
 }
 
