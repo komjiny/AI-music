@@ -621,8 +621,9 @@ body::before {
         <input type="text" id="newAuthor" placeholder="예: 김민준">
       </div>
       <div class="modal-field">
-        <label>🔗 flowmusic.app 링크</label>
+        <label>🎵 flowmusic.app 링크 <span style="color:#bbb;font-weight:400;">(선택)</span></label>
         <input type="url" id="newUrl" placeholder="https://www.flowmusic.app/song/...">
+        <div style="font-size:11px;color:#bbb;margin-top:5px;">음악 링크 또는 MP3 중 하나는 필수예요</div>
       </div>
       <div class="modal-field">
         <label>☁️ 구글 드라이브 MP3 링크 <span style="color:#bbb;font-weight:400;">(선택)</span></label>
@@ -860,28 +861,34 @@ function renderSongs() {
   filtered.forEach((song, i) => {
     const c = COLORS[song.color ?? 0];
     const driveLink = song.driveUrl ? getDriveDownloadUrl(song.driveUrl) : null;
+    const hasPlay = !!song.url;
+    const hasDownload = !!driveLink;
+
+    // 카드 클릭 시 이동 대상 (음악링크 우선, 없으면 드라이브)
+    const mainLink = song.url || driveLink;
 
     const card = document.createElement('div');
     card.className = 'song-card';
     card.style.animationDelay = (i * 0.05) + 's';
     card.innerHTML = `
-      <a href="${song.url}" target="_blank" rel="noopener" class="song-card-link">
+      <a href="${mainLink}" target="_blank" rel="noopener" class="song-card-link">
         <div class="song-thumb" style="background:${c.bg}">
           <span>${c.emoji}</span>
-          <div class="play-overlay">▶️</div>
+          <div class="play-overlay">${hasPlay ? '▶️' : '⬇️'}</div>
         </div>
         <div class="song-info">
           <div class="song-title">${song.title}</div>
           <div class="song-author">👤 ${song.author}</div>
           <div class="song-tags">
             ${song.tag ? `<span class="tag" style="background:#f3eeff;color:#a78bcc;">${song.tag}</span>` : ''}
-            ${driveLink ? `<span class="tag" style="background:#e8f5e9;color:#4caf50;">MP3 있음</span>` : ''}
+            ${hasPlay  ? `<span class="tag" style="background:#eef3ff;color:#7898e8;">🎵 링크</span>` : ''}
+            ${hasDownload ? `<span class="tag" style="background:#e8f5e9;color:#4caf50;">⬇ MP3</span>` : ''}
           </div>
         </div>
       </a>
       <div class="song-btns">
-        <a href="${song.url}" target="_blank" rel="noopener" class="btn-play" title="재생">▶</a>
-        ${driveLink ? `<a href="${driveLink}" class="btn-download" title="MP3 다운로드" download>⬇</a>` : ''}
+        ${hasPlay     ? `<a href="${song.url}" target="_blank" rel="noopener" class="btn-play" title="음악 재생">▶</a>` : ''}
+        ${hasDownload ? `<a href="${driveLink}" class="btn-download" title="MP3 다운로드" download>⬇</a>` : ''}
       </div>
     `;
     list.appendChild(card);
@@ -1004,19 +1011,26 @@ function deleteSong(i) {
 }
 
 function addSong() {
-  const title  = document.getElementById('newTitle').value.trim();
-  const author = document.getElementById('newAuthor').value.trim();
-  const url    = document.getElementById('newUrl').value.trim();
-  const tag    = document.getElementById('newTag').value.trim();
-
+  const title    = document.getElementById('newTitle').value.trim();
+  const author   = document.getElementById('newAuthor').value.trim();
+  const url      = document.getElementById('newUrl').value.trim();
   const driveUrl = document.getElementById('newDriveUrl').value.trim();
+  const tag      = document.getElementById('newTag').value.trim();
 
-  if (!title || !author || !url) {
-    showToast('제목, 이름, 링크는 필수예요!', true);
+  if (!title || !author) {
+    showToast('제목과 이름은 필수예요!', true);
     return;
   }
-  if (!url.startsWith('http')) {
-    showToast('링크가 올바르지 않아요', true);
+  if (!url && !driveUrl) {
+    showToast('음악 링크 또는 MP3 링크 중 하나는 필요해요!', true);
+    return;
+  }
+  if (url && !url.startsWith('http')) {
+    showToast('음악 링크가 올바르지 않아요', true);
+    return;
+  }
+  if (driveUrl && !driveUrl.startsWith('http')) {
+    showToast('MP3 링크가 올바르지 않아요', true);
     return;
   }
 
@@ -1026,7 +1040,6 @@ function addSong() {
   renderSongs();
   showToast(`"${title}" 추가 완료!`);
 
-  // 초기화
   ['newTitle','newAuthor','newUrl','newDriveUrl'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('newTag').value = '';
   selectedColor = 0;
