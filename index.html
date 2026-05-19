@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🎵 우리 반 음악 모음</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#a78bcc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="음악 모음">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+  --bg: #f0edf8;
+  --card: #ffffff;
+  --accent: #a78bcc;
+  --accent2: #7bb8e8;
+  --accent3: #87c9a0;
+  --yellow: #f5d97a;
+  --text: #3a3352;
+  --muted: #aaa;
+  --border: #e8e2f5;
+  --shadow: 0 4px 20px rgba(120,100,180,0.10);
+  --header-grad: linear-gradient(135deg, #c9b8e8 0%, #a78bcc 50%, #8e9fd8 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* 배경 장식 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 280px;
+  background: var(--header-grad);
+  border-radius: 0 0 40px 40px;
+  z-index: 0;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 헤더 */
+.header {
+  padding: 48px 0 24px;
+  text-align: center;
+  color: white;
+}
+
+.header .emoji {
+  font-size: 52px;
+  display: block;
+  margin-bottom: 8px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.header h1 {
+  font-family: 'Gaegu', cursive;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.header .subtitle {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+/* 검색 */
+.search-wrap {
+  margin: 20px 0 16px;
+}
+
+.search-box {
+  width: 100%;
+  padding: 14px 18px 14px 44px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  font-size: 15px;
+  font-family: 'Noto Sans KR', sans-serif;
+  box-shadow: var(--shadow);
+  outline: none;
+  transition: border-color 0.2s;
+  color: var(--text);
+  position: relative;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.search-box:focus {
+  border-color: var(--accent);
+}
+
+/* 탭 */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  padding: 8px 16px;
+  background: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: var(--accent);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* 카운트 */
+.count-bar {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+/* 음악 카드 */
+.song-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.song-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 14px 14px 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 2px solid transparent;
+  animation: fadeUp 0.4s ease both;
+}
+
+.song-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(120,100,180,0.15);
+  border-color: var(--accent);
+}
+
+.song-card-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.song-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.btn-play, .btn-download {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform 0.15s, opacity 0.15s;
+  cursor: pointer;
+}
+
+.btn-play {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-download {
+  background: #e8f5e9;
+  color: #4caf50;
+  border: 1.5px solid #c8e6c9;
+}
+
+.btn-play:hover, .btn-download:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+.song-thumb {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.song-card:hover .play-overlay { opacity: 1; }
+
+.song-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.song-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-author {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.song-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.song-arrow {
+  font-size: 20px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* 빈 상태 */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty p { font-size: 15px; }
+
+/* 관리자 버튼 */
+.admin-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--text);
+  color: white;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  z-index: 100;
+}
+.admin-fab:hover { transform: scale(1.1); }
+
+/* 모달 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px 40px;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0);
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.modal-field {
+  margin-bottom: 14px;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.modal-field input, .modal-field select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  color: var(--text);
+  background: #fafafa;
+}
+
+.modal-field input:focus, .modal-field select:focus {
+  border-color: var(--accent);
+  background: white;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 13px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.btn-save {
+  flex: 2;
+  padding: 13px;
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  color: white;
+}
+
+/* 곡 목록 관리 */
+.manage-list { margin-bottom: 16px; }
+
+.manage-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.manage-item-info { flex: 1; min-width: 0; }
+.manage-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.manage-item-author { font-size: 12px; color: var(--muted); }
+
+.btn-del {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #ef5350;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-btn-wrap {
+  margin-top: 16px;
+}
+
+.btn-add-song {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--accent2), #1e88e5);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+}
+
+/* 탭 관리 */
+.tab-manage {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-manage-btn {
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  background: transparent;
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.tab-manage-btn.active {
+  border-color: var(--accent);
+  background: #fff3f0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* 토스트 */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #2d2d2d;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 13px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 색상 팔레트 */
+.color-palette {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.color-dot.selected {
+  border-color: #333;
+  transform: scale(1.15);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <span class="emoji">🎵</span>
+    <h1 id="appTitle">우리 반 음악 모음</h1>
+    <p class="subtitle" id="appSubtitle">친구들이 만든 음악을 들어보세요!</p>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-box" id="searchBox" placeholder="곡 이름이나 만든 사람 검색..." oninput="renderSongs()">
+  </div>
+
+  <div class="tabs" id="tabsWrap"></div>
+
+  <div class="count-bar" id="countBar"></div>
+
+  <div class="song-list" id="songList"></div>
+</div>
+
+<!-- 관리자 버튼 -->
+<button class="admin-fab" onclick="openAdmin()" title="관리">⚙️</button>
+
+<!-- 관리 모달 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOnBg(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <h2>🎛️ 음악 목록 관리</h2>
+
+    <!-- 탭 전환 -->
+    <div class="tab-manage" id="adminTabs">
+      <button class="tab-manage-btn active" onclick="switchAdmin('list',this)">목록 보기</button>
+      <button class="tab-manage-btn" onclick="switchAdmin('add',this)">곡 추가</button>
+      <button class="tab-manage-btn" onclick="switchAdmin('settings',this)">앱 설정</button>
+    </div>
+
+    <!-- 목록 보기 -->
+    <div id="adminList">
+      <div class="manage-list" id="manageList"></div>
+    </div>
+
+    <!-- 곡 추가 -->
+    <div id="adminAdd" style="display:none;">
+      <div class="modal-field">
+        <label>🎵 곡 제목</label>
+        <input type="text" id="newTitle" placeholder="예: 봄날의 멜로디">
+      </div>
+      <div class="modal-field">
+        <label>👤 만든 사람 (학생 이름)</label>
+        <input type="text" id="newAuthor" placeholder="예: 김민준">
+      </div>
+      <div class="modal-field">
+        <label>🔗 flowmusic.app 링크</label>
+        <input type="url" id="newUrl" placeholder="https://www.flowmusic.app/song/...">
+      </div>
+      <div class="modal-field">
+        <label>☁️ 구글 드라이브 MP3 링크 <span style="color:#bbb;font-weight:400;">(선택)</span></label>
+        <input type="url" id="newDriveUrl" placeholder="https://drive.google.com/file/d/...">
+        <div style="font-size:11px;color:#bbb;margin-top:5px;">구글 드라이브 공유 링크를 그대로 붙여넣으세요</div>
+      </div>
+      <div class="modal-field">
+        <label>🏷️ 모둠 선택</label>
+        <select id="newTag" style="color:#2d2d2d;">
+          <option value="">-- 모둠 선택 --</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>🎨 카드 색상</label>
+        <div class="color-palette" id="colorPalette"></div>
+      </div>
+      <div class="add-btn-wrap">
+        <button class="btn-add-song" onclick="addSong()">✓ 곡 추가하기</button>
+      </div>
+    </div>
+
+    <!-- 앱 설정 -->
+    <div id="adminSettings" style="display:none;">
+      <div class="modal-field">
+        <label>📱 앱 제목</label>
+        <input type="text" id="setTitle" placeholder="우리 반 음악 모음">
+      </div>
+      <div class="modal-field">
+        <label>📝 부제목</label>
+        <input type="text" id="setSubtitle" placeholder="친구들이 만든 음악을 들어보세요!">
+      </div>
+
+      <div style="margin-top:20px;margin-bottom:8px;font-size:12px;color:#999;font-weight:500;letter-spacing:0.5px;">🎨 배경 테마</div>
+      <div id="themePalette" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;"></div>
+
+      <div style="margin-top:4px;margin-bottom:8px;font-size:12px;color:#999;font-weight:500;letter-spacing:0.5px;">🏷️ 모둠 관리</div>
+      <div id="groupList" style="margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <input type="text" id="newGroupInput" placeholder="새 모둠 이름 입력" style="flex:1;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;color:#2d2d2d;background:#fafafa;">
+        <button onclick="addGroup()" style="padding:10px 16px;background:#42a5f5;border:none;border-radius:12px;color:white;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;">+ 추가</button>
+      </div>
+
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">취소</button>
+        <button class="btn-save" onclick="saveSettings()">저장</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ───── 배경 테마 ─────
+const THEMES = [
+  { name: '라벤더', bg: '#f0edf8', hdr: 'linear-gradient(135deg,#c9b8e8,#a78bcc,#8e9fd8)', accent: '#a78bcc', text: '#3a3352' },
+  { name: '민트', bg: '#edf6f2', hdr: 'linear-gradient(135deg,#b2dfc8,#7ec8a4,#5bb38a)', accent: '#5bb38a', text: '#1f3d2e' },
+  { name: '피치', bg: '#fdf0ee', hdr: 'linear-gradient(135deg,#f7c5bb,#f0a090,#e8816e)', accent: '#e8816e', text: '#3d1f1a' },
+  { name: '스카이', bg: '#eef4fc', hdr: 'linear-gradient(135deg,#b8d8f5,#85bded,#5aa0e0)', accent: '#5aa0e0', text: '#1a2d3d' },
+  { name: '버터', bg: '#fdf8ec', hdr: 'linear-gradient(135deg,#f7e8a0,#f0d060,#e8b840)', accent: '#d4a020', text: '#3d2e00' },
+  { name: '로즈', bg: '#fceef4', hdr: 'linear-gradient(135deg,#f5b8d4,#e880aa,#d85090)', accent: '#d85090', text: '#3d1030' },
+  { name: '코랄', bg: '#fef3ee', hdr: 'linear-gradient(135deg,#fac5a4,#f5a070,#f07840)', accent: '#f07840', text: '#3d1800' },
+  { name: '퍼플', bg: '#f2eefb', hdr: 'linear-gradient(135deg,#c8aaee,#a070e0,#7840c8)', accent: '#7840c8', text: '#200040' },
+];
+
+let selectedTheme = 0;
+
+function renderThemePalette() {
+  const el = document.getElementById('themePalette');
+  if (!el) return;
+  el.innerHTML = '';
+  THEMES.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.title = t.name;
+    btn.style.cssText = `
+      width: 56px; height: 56px; border-radius: 14px;
+      background: ${t.hdr}; border: 3px solid ${i === selectedTheme ? t.accent : 'transparent'};
+      cursor: pointer; position: relative; transition: transform 0.15s, border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12); outline: none;
+    `;
+    btn.innerHTML = `<span style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;color:white;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.4);">${t.name}</span>`;
+    if (i === selectedTheme) {
+      btn.innerHTML += `<span style="position:absolute;top:4px;right:4px;font-size:14px;">✓</span>`;
+    }
+    btn.onclick = () => {
+      selectedTheme = i;
+      renderThemePalette();
+      previewTheme(i);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function previewTheme(i) {
+  const t = THEMES[i];
+  document.documentElement.style.setProperty('--bg', t.bg);
+  document.documentElement.style.setProperty('--header-grad', t.hdr);
+  document.documentElement.style.setProperty('--accent', t.accent);
+  document.documentElement.style.setProperty('--text', t.text);
+  document.body.style.background = t.bg;
+}
+
+function applyTheme(i) {
+  previewTheme(i);
+}
+
+// ───── 구글 드라이브 링크 변환 ─────
+function getDriveDownloadUrl(shareUrl) {
+  if (!shareUrl) return null;
+  // https://drive.google.com/file/d/FILE_ID/view 형태 처리
+  const match = shareUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) {
+    return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+  }
+  // https://drive.google.com/open?id=FILE_ID 형태 처리
+  const match2 = shareUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2) {
+    return `https://drive.google.com/uc?export=download&id=${match2[1]}`;
+  }
+  return shareUrl;
+}
+
+// ───── 색상 팔레트 ─────
+const COLORS = [
+  { bg: 'linear-gradient(135deg,#ff8a65,#ff5722)', emoji: '🔴' },
+  { bg: 'linear-gradient(135deg,#42a5f5,#1565c0)', emoji: '🔵' },
+  { bg: 'linear-gradient(135deg,#66bb6a,#2e7d32)', emoji: '🟢' },
+  { bg: 'linear-gradient(135deg,#ffd54f,#f9a825)', emoji: '🟡' },
+  { bg: 'linear-gradient(135deg,#ab47bc,#6a1b9a)', emoji: '🟣' },
+  { bg: 'linear-gradient(135deg,#26c6da,#00838f)', emoji: '🩵' },
+  { bg: 'linear-gradient(135deg,#ff7043,#bf360c)', emoji: '🟠' },
+  { bg: 'linear-gradient(135deg,#ec407a,#880e4f)', emoji: '🩷' },
+];
+
+let selectedColor = 0;
+
+function renderColorPalette() {
+  const el = document.getElementById('colorPalette');
+  el.innerHTML = '';
+  COLORS.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'color-dot' + (i === selectedColor ? ' selected' : '');
+    d.style.background = c.bg;
+    d.onclick = () => {
+      selectedColor = i;
+      renderColorPalette();
+    };
+    el.appendChild(d);
+  });
+}
+
+// ───── 기본 데이터 ─────
+const DEFAULT_SONGS = [
+  { id: 1, title: '봄날의 멜로디', author: '김민준', url: 'https://www.flowmusic.app/song/af45000f-6758-466f-b442-76f19b643047', tag: '1모둠', color: 0 },
+  { id: 2, title: '여름 바람', author: '이서연', url: 'https://www.flowmusic.app/song/af45000f-6758-466f-b442-76f19b643047', tag: '1모둠', color: 1 },
+  { id: 3, title: '신나는 비트', author: '박지호', url: 'https://www.flowmusic.app/song/af45000f-6758-466f-b442-76f19b643047', tag: '2모둠', color: 2 },
+];
+
+let songs = [];
+let currentTag = '전체';
+let appConfig = { title: '우리 반 음악 모음', subtitle: '친구들이 만든 음악을 들어보세요!', groups: ['1모둠', '2모둠'], theme: 0 };
+
+// ───── 초기화 ─────
+function init() {
+  try {
+    const saved = localStorage.getItem('musicAppSongs');
+    songs = saved ? JSON.parse(saved) : DEFAULT_SONGS;
+    const cfg = localStorage.getItem('musicAppConfig');
+    if (cfg) {
+      appConfig = JSON.parse(cfg);
+      if (!appConfig.groups) appConfig.groups = ['1모둠', '2모둠'];
+      if (appConfig.theme === undefined) appConfig.theme = 0;
+    }
+  } catch(e) { songs = DEFAULT_SONGS; }
+  selectedTheme = appConfig.theme ?? 0;
+  applyTheme(selectedTheme);
+  applyConfig();
+  renderColorPalette();
+  renderSongs();
+}
+
+function applyConfig() {
+  document.getElementById('appTitle').textContent = appConfig.title;
+  document.getElementById('appSubtitle').textContent = appConfig.subtitle;
+  document.getElementById('setTitle').value = appConfig.title;
+  document.getElementById('setSubtitle').value = appConfig.subtitle;
+  renderGroupList();
+  renderGroupSelect();
+  renderThemePalette();
+}
+
+function save() {
+  try { localStorage.setItem('musicAppSongs', JSON.stringify(songs)); } catch(e) {}
+}
+
+// ───── 렌더링 ─────
+function getTags() {
+  const tags = ['전체', ...new Set(songs.map(s => s.tag).filter(Boolean))];
+  return tags;
+}
+
+function renderSongs() {
+  const query = document.getElementById('searchBox').value.trim().toLowerCase();
+  const tags = getTags();
+
+  // 탭 렌더
+  const tabsWrap = document.getElementById('tabsWrap');
+  tabsWrap.innerHTML = '';
+  tags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (tag === currentTag ? ' active' : '');
+    btn.textContent = tag;
+    btn.onclick = () => { currentTag = tag; renderSongs(); };
+    tabsWrap.appendChild(btn);
+  });
+
+  // 필터
+  let filtered = songs.filter(s => {
+    const matchTag = currentTag === '전체' || s.tag === currentTag;
+    const matchQ = !query || s.title.toLowerCase().includes(query) || s.author.toLowerCase().includes(query);
+    return matchTag && matchQ;
+  });
+
+  document.getElementById('countBar').textContent = `🎵 ${filtered.length}곡`;
+
+  const list = document.getElementById('songList');
+  list.innerHTML = '';
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🎵</div><p>곡이 없어요</p></div>`;
+    return;
+  }
+
+  filtered.forEach((song, i) => {
+    const c = COLORS[song.color ?? 0];
+    const driveLink = song.driveUrl ? getDriveDownloadUrl(song.driveUrl) : null;
+
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.style.animationDelay = (i * 0.05) + 's';
+    card.innerHTML = `
+      <a href="${song.url}" target="_blank" rel="noopener" class="song-card-link">
+        <div class="song-thumb" style="background:${c.bg}">
+          <span>${c.emoji}</span>
+          <div class="play-overlay">▶️</div>
+        </div>
+        <div class="song-info">
+          <div class="song-title">${song.title}</div>
+          <div class="song-author">👤 ${song.author}</div>
+          <div class="song-tags">
+            ${song.tag ? `<span class="tag" style="background:#f3eeff;color:#a78bcc;">${song.tag}</span>` : ''}
+            ${driveLink ? `<span class="tag" style="background:#e8f5e9;color:#4caf50;">MP3 있음</span>` : ''}
+          </div>
+        </div>
+      </a>
+      <div class="song-btns">
+        <a href="${song.url}" target="_blank" rel="noopener" class="btn-play" title="재생">▶</a>
+        ${driveLink ? `<a href="${driveLink}" class="btn-download" title="MP3 다운로드" download>⬇</a>` : ''}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ───── 모둠 관리 ─────
+function renderGroupList() {
+  const el = document.getElementById('groupList');
+  if (!el) return;
+  el.innerHTML = '';
+  if (appConfig.groups.length === 0) {
+    el.innerHTML = '<p style="color:#bbb;font-size:13px;margin-bottom:8px;">모둠이 없습니다. 아래에서 추가하세요.</p>';
+    return;
+  }
+  appConfig.groups.forEach((g, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5;';
+    div.innerHTML = `
+      <span style="flex:1;font-size:14px;font-weight:500;">🏷️ ${g}</span>
+      <button onclick="removeGroup(${i})" style="width:30px;height:30px;border:1px solid #ffcdd2;border-radius:8px;background:#fff5f5;color:#ef5350;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderGroupSelect() {
+  const sel = document.getElementById('newTag');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- 모둠 선택 --</option>';
+  appConfig.groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    if (g === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function addGroup() {
+  const input = document.getElementById('newGroupInput');
+  const name = input.value.trim();
+  if (!name) { showToast('모둠 이름을 입력하세요', true); return; }
+  if (appConfig.groups.includes(name)) { showToast('이미 있는 모둠이에요', true); return; }
+  appConfig.groups.push(name);
+  input.value = '';
+  renderGroupList();
+  renderGroupSelect();
+}
+
+function removeGroup(i) {
+  const name = appConfig.groups[i];
+  const usedCount = songs.filter(s => s.tag === name).length;
+  if (usedCount > 0) {
+    if (!confirm(`"${name}"에 곡이 ${usedCount}개 있어요.\n삭제하면 해당 곡들의 모둠이 비워집니다. 계속할까요?`)) return;
+    songs.forEach(s => { if (s.tag === name) s.tag = ''; });
+    save();
+    renderSongs();
+  }
+  appConfig.groups.splice(i, 1);
+  renderGroupList();
+  renderGroupSelect();
+}
+
+// ───── 관리자 ─────
+function openAdmin() {
+  renderManageList();
+  applyConfig();
+  renderGroupList();
+  renderGroupSelect();
+  renderThemePalette();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeOnBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function switchAdmin(tab, btn) {
+  document.querySelectorAll('.tab-manage-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('adminList').style.display = tab === 'list' ? '' : 'none';
+  document.getElementById('adminAdd').style.display = tab === 'add' ? '' : 'none';
+  document.getElementById('adminSettings').style.display = tab === 'settings' ? '' : 'none';
+}
+
+function renderManageList() {
+  const el = document.getElementById('manageList');
+  el.innerHTML = '';
+  if (songs.length === 0) {
+    el.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">곡이 없습니다</p>';
+    return;
+  }
+  songs.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'manage-item';
+    div.innerHTML = `
+      <div class="manage-item-info">
+        <div class="manage-item-title">${s.title}</div>
+        <div class="manage-item-author">${s.author} · ${s.tag || ''}</div>
+      </div>
+      <button class="btn-del" onclick="deleteSong(${i})">✕</button>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function deleteSong(i) {
+  if (!confirm(`"${songs[i].title}"을(를) 삭제할까요?`)) return;
+  songs.splice(i, 1);
+  save();
+  renderManageList();
+  renderSongs();
+  showToast('삭제했어요');
+}
+
+function addSong() {
+  const title  = document.getElementById('newTitle').value.trim();
+  const author = document.getElementById('newAuthor').value.trim();
+  const url    = document.getElementById('newUrl').value.trim();
+  const tag    = document.getElementById('newTag').value.trim();
+
+  const driveUrl = document.getElementById('newDriveUrl').value.trim();
+
+  if (!title || !author || !url) {
+    showToast('제목, 이름, 링크는 필수예요!', true);
+    return;
+  }
+  if (!url.startsWith('http')) {
+    showToast('링크가 올바르지 않아요', true);
+    return;
+  }
+
+  songs.push({ id: Date.now(), title, author, url, driveUrl, tag, color: selectedColor });
+  save();
+  renderManageList();
+  renderSongs();
+  showToast(`"${title}" 추가 완료!`);
+
+  // 초기화
+  ['newTitle','newAuthor','newUrl','newDriveUrl'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newTag').value = '';
+  selectedColor = 0;
+  renderColorPalette();
+}
+
+function saveSettings() {
+  appConfig.title = document.getElementById('setTitle').value.trim() || appConfig.title;
+  appConfig.subtitle = document.getElementById('setSubtitle').value.trim() || appConfig.subtitle;
+  appConfig.theme = selectedTheme;
+  try { localStorage.setItem('musicAppConfig', JSON.stringify(appConfig)); } catch(e) {}
+  applyConfig();
+  applyTheme(selectedTheme);
+  closeModal();
+  showToast('설정 저장 완료!');
+}
+
+function showToast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#ef5350' : '#2d2d2d';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+
+// PWA Service Worker 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW 등록 완료'))
+      .catch(e => console.log('SW 등록 실패:', e));
+  });
+}
+
+// iOS 홈화면 추가 안내 배너
+function showInstallBanner() {
+  const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('installBannerDismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    const banner = document.createElement('div');
+    banner.style.cssText = `
+      position:fixed;bottom:0;left:0;right:0;
+      background:white;padding:16px 20px;
+      box-shadow:0 -4px 20px rgba(0,0,0,0.15);
+      display:flex;align-items:center;gap:12px;
+      z-index:9999;font-family:'Noto Sans KR',sans-serif;
+      border-radius:20px 20px 0 0;
+    `;
+    banner.innerHTML = `
+      <span style="font-size:28px;">📲</span>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:700;color:#3a3352;">홈 화면에 앱 추가하기</div>
+        <div style="font-size:12px;color:#aaa;margin-top:2px;">하단 <b>공유 버튼 →</b> <b>"홈 화면에 추가"</b> 선택</div>
+      </div>
+      <button onclick="this.parentElement.remove();localStorage.setItem('installBannerDismissed','1')"
+        style="border:none;background:#f0edf8;border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer;color:#a78bcc;font-weight:700;">닫기</button>
+    `;
+    document.body.appendChild(banner);
+  }
+}
+
+// 안드로이드 설치 프롬프트
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.createElement('button');
+  btn.style.cssText = `
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#c9b8e8,#a78bcc);
+    color:white;border:none;border-radius:30px;
+    padding:12px 24px;font-size:14px;font-weight:700;
+    font-family:'Noto Sans KR',sans-serif;cursor:pointer;
+    box-shadow:0 4px 16px rgba(167,139,204,0.4);
+    z-index:9999;white-space:nowrap;
+  `;
+  btn.textContent = '📲 앱으로 설치하기';
+  btn.onclick = async () => {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    btn.remove();
+  };
+  document.body.appendChild(btn);
+});
+
+setTimeout(showInstallBanner, 2000);
+</script>
+</body>
+</html>
