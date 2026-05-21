@@ -484,6 +484,24 @@ body::before {
   flex-shrink: 0;
 }
 
+.btn-edit {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #c9b8e8;
+  border-radius: 8px;
+  background: #f8f4ff;
+  color: #a78bcc;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-edit:hover { background: #ede8f8; }
+
 .add-btn-wrap {
   margin-top: 16px;
 }
@@ -701,6 +719,45 @@ body::before {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 곡 수정 모달 -->
+<div class="modal-overlay" id="editOverlay" onclick="closeEditOnBg(event)">
+  <div class="modal" id="editModal">
+    <div class="modal-handle"></div>
+    <h2>✏️ 곡 정보 수정</h2>
+    <input type="hidden" id="editIndex">
+
+    <div class="modal-field">
+      <label>🎵 곡 제목</label>
+      <input type="text" id="editTitle" placeholder="곡 제목">
+    </div>
+    <div class="modal-field">
+      <label>👤 만든 사람</label>
+      <input type="text" id="editAuthor" placeholder="학생 이름">
+    </div>
+    <div class="modal-field">
+      <label>🎵 flowmusic.app 링크 <span style="color:#bbb;font-weight:400;">(선택)</span></label>
+      <input type="url" id="editUrl" placeholder="https://www.flowmusic.app/song/...">
+    </div>
+    <div class="modal-field">
+      <label>☁️ 구글 드라이브 MP3 링크 <span style="color:#bbb;font-weight:400;">(선택)</span></label>
+      <input type="url" id="editDriveUrl" placeholder="https://drive.google.com/file/d/...">
+    </div>
+    <div class="modal-field">
+      <label>🏷️ 모둠</label>
+      <select id="editTag" style="color:#2d2d2d;"></select>
+    </div>
+    <div class="modal-field">
+      <label>🎨 카드 색상</label>
+      <div class="color-palette" id="editColorPalette"></div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+      <button class="btn-save" onclick="saveSongEdit()">✓ 저장</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ───── 배경 테마 ─────
@@ -1035,6 +1092,80 @@ function importData(event) {
   reader.readAsText(file);
 }
 
+// ───── 곡 수정 모달 ─────
+let editColor = 0;
+
+function openEditModal(i) {
+  const s = songs[i];
+  editColor = s.color ?? 0;
+
+  document.getElementById('editIndex').value   = i;
+  document.getElementById('editTitle').value   = s.title;
+  document.getElementById('editAuthor').value  = s.author;
+  document.getElementById('editUrl').value     = s.url || '';
+  document.getElementById('editDriveUrl').value= s.driveUrl || '';
+
+  // 모둠 드롭다운
+  const sel = document.getElementById('editTag');
+  sel.innerHTML = '<option value="">-- 모둠 없음 --</option>';
+  appConfig.groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    if (g === s.tag) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  renderEditColorPalette();
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function renderEditColorPalette() {
+  const el = document.getElementById('editColorPalette');
+  if (!el) return;
+  el.innerHTML = '';
+  COLORS.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'color-dot' + (i === editColor ? ' selected' : '');
+    d.style.background = c.bg;
+    d.onclick = () => { editColor = i; renderEditColorPalette(); };
+    el.appendChild(d);
+  });
+}
+
+function closeEditModal() {
+  document.getElementById('editOverlay').classList.remove('open');
+}
+
+function closeEditOnBg(e) {
+  if (e.target === document.getElementById('editOverlay')) closeEditModal();
+}
+
+function saveSongEdit() {
+  const i      = parseInt(document.getElementById('editIndex').value);
+  const title  = document.getElementById('editTitle').value.trim();
+  const author = document.getElementById('editAuthor').value.trim();
+  const url    = document.getElementById('editUrl').value.trim();
+  const driveUrl = document.getElementById('editDriveUrl').value.trim();
+  const tag    = document.getElementById('editTag').value;
+
+  if (!title || !author) {
+    showToast('제목과 이름은 필수예요!', true);
+    return;
+  }
+  if (!url && !driveUrl) {
+    showToast('음악 링크 또는 MP3 링크 중 하나는 필요해요!', true);
+    return;
+  }
+
+  songs[i] = { ...songs[i], title, author, url, driveUrl, tag, color: editColor };
+  save();
+  renderManageList();
+  renderSongs();
+  closeEditModal();
+  showToast(`"${title}" 수정 완료!`);
+}
+
 // ───── 관리자 ─────
 function openAdmin() {
   renderManageList();
@@ -1077,7 +1208,8 @@ function renderManageList() {
         <div class="manage-item-title">${s.title}</div>
         <div class="manage-item-author">${s.author} · ${s.tag || ''}</div>
       </div>
-      <button class="btn-del" onclick="deleteSong(${i})">✕</button>
+      <button class="btn-edit" onclick="openEditModal(${i})" title="수정">✏️</button>
+      <button class="btn-del"  onclick="deleteSong(${i})"   title="삭제">✕</button>
     `;
     el.appendChild(div);
   });
