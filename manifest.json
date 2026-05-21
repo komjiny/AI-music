@@ -1,11 +1,12 @@
 {
-  "name": "우리 반 음악 모음",
-  "short_name": "음악 모음",
+  "name": "AI 뮤직",
+  "short_name": "AI 뮤직",
   "description": "친구들이 만든 음악을 들어보세요!",
-  "start_url": "/",
+  "start_url": "/AI-music/",
+  "scope": "/AI-music/",
   "display": "standalone",
-  "background_color": "#f0edf8",
-  "theme_color": "#a78bcc",
+  "background_color": "#fdf0ee",
+  "theme_color": "#e8816e",
   "orientation": "portrait",
   "lang": "ko",
   "icons": [
