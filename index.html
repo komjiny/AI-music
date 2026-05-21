@@ -836,6 +836,7 @@ function applyConfig() {
   document.getElementById('appSubtitle').textContent = appConfig.subtitle;
   document.getElementById('setTitle').value = appConfig.title;
   document.getElementById('setSubtitle').value = appConfig.subtitle;
+  document.title = appConfig.title; // 브라우저 탭 제목 동기화
   renderGroupList();
   renderGroupSelect();
   renderThemePalette();
