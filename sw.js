@@ -1,14 +1,20 @@
-const CACHE_NAME = 'music-app-v2';
+const CACHE_NAME = 'music-app-v3';
+const BASE = '/AI-music';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png',
 ];
 
-// 설치: 핵심 파일 캐시
+// 설치
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => {
+      // 실패해도 설치 진행
+      return Promise.allSettled(ASSETS.map(url => cache.add(url)));
+    })
   );
   self.skipWaiting();
 });
@@ -23,9 +29,21 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// 요청 가로채기: 캐시 우선, 없으면 네트워크
+// 요청 가로채기: 네트워크 우선, 실패시 캐시
 self.addEventListener('fetch', e => {
+  // API 요청은 캐시 안 함
+  if (e.request.url.includes('script.google.com') ||
+      e.request.url.includes('fonts.googleapis.com')) {
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request)
+      .then(res => {
+        // 성공시 캐시에 저장
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
