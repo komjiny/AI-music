@@ -610,6 +610,24 @@ body::before {
 <!-- 관리자 버튼 -->
 <button class="admin-fab" onclick="openAdmin()" title="관리">⚙️</button>
 
+<!-- 비밀번호 모달 -->
+<div class="modal-overlay" id="pwOverlay" onclick="closePwOnBg(event)">
+  <div class="modal" id="pwModal" style="max-height:300px;">
+    <div class="modal-handle"></div>
+    <h2>🔐 관리자 로그인</h2>
+    <div class="modal-field" style="margin-top:16px;">
+      <label>비밀번호</label>
+      <input type="password" id="pwInput" placeholder="비밀번호 입력"
+        onkeydown="if(event.key==='Enter') checkPassword()"
+        style="font-size:18px;letter-spacing:4px;text-align:center;">
+    </div>
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="btn-cancel" onclick="closePwModal()">취소</button>
+      <button class="btn-save" onclick="checkPassword()">✓ 확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 관리 모달 -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeOnBg(event)">
   <div class="modal" id="modal">
@@ -1226,16 +1244,39 @@ async function saveSongEdit() {
 // ───── 관리자 ─────
 function openAdmin() {
   if (!isAdmin) {
-    const pw = prompt('관리자 비밀번호를 입력하세요:');
-    if (pw === null) return;
-    if (pw !== '7942') {
-      showToast('비밀번호가 틀렸습니다', true);
-      return;
-    }
+    // 비밀번호 모달 표시
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('pwInput').focus(), 300);
+    return;
+  }
+  openAdminModal();
+}
+
+function closePwModal() {
+  document.getElementById('pwOverlay').classList.remove('open');
+}
+
+function closePwOnBg(e) {
+  if (e.target === document.getElementById('pwOverlay')) closePwModal();
+}
+
+function checkPassword() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === '7942') {
     adminPassword = pw;
     isAdmin = true;
+    closePwModal();
     showToast('✅ 관리자로 로그인됐어요');
+    setTimeout(() => openAdminModal(), 300);
+  } else {
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').placeholder = '❌ 틀렸어요. 다시 입력';
+    setTimeout(() => document.getElementById('pwInput').placeholder = '비밀번호 입력', 1500);
   }
+}
+
+function openAdminModal() {
   renderManageList();
   applyConfig();
   renderGroupList();
